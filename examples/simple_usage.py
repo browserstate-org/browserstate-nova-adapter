@@ -4,7 +4,7 @@ from nova_act import NovaAct
 # Example 1: Using with context manager
 with with_browserstate(
     user_id="demo-user",
-    state_id="nova-session",
+    session_id="nova-session",
     provider="redis",  # or 'local', 's3', 'gcs'
     redis_options={"host": "localhost", "port": 6379}
 ) as user_data_dir:
@@ -16,7 +16,7 @@ from browserstate_nova_adapter import mount_browserstate, unmount_browserstate
 
 user_data_dir = mount_browserstate(
     user_id="demo",
-    state_id="session1",
+    session_id="session1",
     provider="local"
 )
 
