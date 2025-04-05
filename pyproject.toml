@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "browserstate-nova-adapter"
+version = "0.1.0"
+description = "Adapter to use BrowserState with Amazon Nova Act"
+readme = "README.md"
+authors = [
+    {name = "browserstate-org", email = "info@browserstate.org"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "browserstate",
+]
+
+[project.urls]
+Homepage = "https://github.com/browserstate-org/browserstate-nova-adapter"
+"Bug Tracker" = "https://github.com/browserstate-org/browserstate-nova-adapter/issues" 
