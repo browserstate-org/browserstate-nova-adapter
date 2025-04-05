@@ -23,7 +23,7 @@ from nova_act import NovaAct
 
 with with_browserstate(
     user_id="demo-user",
-    state_id="nova-session",
+    session_id="nova-session",
     provider="redis",  # or 'local', 's3', 'gcs'
     redis_options={"host": "localhost", "port": 6379}
 ) as user_data_dir:
@@ -41,7 +41,7 @@ from nova_act import NovaAct
 
 user_data_dir = mount_browserstate(
     user_id="demo",
-    state_id="session1",
+    session_id="session1",
     provider="local"
 )
 
@@ -69,7 +69,7 @@ finally:
 ---
 
 ## 🤝 Contributing
-PRs welcome — especially if you’re using BrowserState with other automation tools.
+PRs welcome — especially if you're using BrowserState with other automation tools.
 
 ---
 

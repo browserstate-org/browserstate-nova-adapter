@@ -9,13 +9,14 @@ class TestProvidersConfig(unittest.TestCase):
         
         # Setup mock
         mock_instance = MagicMock()
-        mock_instance.mount.return_value = "/tmp/browser_data"
+        mock_session = {"path": "/tmp/browser_data"}
+        mock_instance.mount_session.return_value = mock_session
         mock_browserstate.return_value = mock_instance
         
         # Test with local provider
         result = mount_browserstate(
             user_id="test-user",
-            state_id="test-session",
+            session_id="test-session",
             provider="local",
             storage_path="/custom/storage/path"
         )
@@ -33,7 +34,8 @@ class TestProvidersConfig(unittest.TestCase):
         
         # Setup mock
         mock_instance = MagicMock()
-        mock_instance.mount.return_value = "/tmp/browser_data"
+        mock_session = {"path": "/tmp/browser_data"}
+        mock_instance.mount_session.return_value = mock_session
         mock_browserstate.return_value = mock_instance
         
         # Test with Redis provider
@@ -48,7 +50,7 @@ class TestProvidersConfig(unittest.TestCase):
         
         result = mount_browserstate(
             user_id="test-user",
-            state_id="test-session",
+            session_id="test-session",
             provider="redis",
             redis_options=redis_options
         )
@@ -66,13 +68,14 @@ class TestProvidersConfig(unittest.TestCase):
         
         # Setup mock
         mock_instance = MagicMock()
-        mock_instance.mount.return_value = "/tmp/browser_data"
+        mock_session = {"path": "/tmp/browser_data"}
+        mock_instance.mount_session.return_value = mock_session
         mock_browserstate.return_value = mock_instance
         
         # Test with S3 provider
         result = mount_browserstate(
             user_id="test-user",
-            state_id="test-session",
+            session_id="test-session",
             provider="s3"
         )
         
@@ -88,13 +91,14 @@ class TestProvidersConfig(unittest.TestCase):
         
         # Setup mock
         mock_instance = MagicMock()
-        mock_instance.mount.return_value = "/tmp/browser_data"
+        mock_session = {"path": "/tmp/browser_data"}
+        mock_instance.mount_session.return_value = mock_session
         mock_browserstate.return_value = mock_instance
         
         # Test with GCS provider
         result = mount_browserstate(
             user_id="test-user",
-            state_id="test-session",
+            session_id="test-session",
             provider="gcs"
         )
         

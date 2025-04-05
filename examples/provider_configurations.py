@@ -4,7 +4,7 @@ from nova_act import NovaAct
 # Example with local storage provider
 with with_browserstate(
     user_id="local-user",
-    state_id="local-session",
+    session_id="local-session",
     provider="local",
     storage_path="/path/to/storage"
 ) as user_data_dir:
@@ -14,7 +14,7 @@ with with_browserstate(
 # Example with Redis provider
 with with_browserstate(
     user_id="redis-user",
-    state_id="redis-session",
+    session_id="redis-session",
     provider="redis",
     redis_options={
         "host": "localhost",
@@ -31,7 +31,7 @@ with with_browserstate(
 # Example with S3 provider (requires boto3)
 with with_browserstate(
     user_id="s3-user",
-    state_id="s3-session",
+    session_id="s3-session",
     provider="s3",
     # S3 configuration is handled through boto3 credentials
     # Make sure AWS credentials are configured in your environment
@@ -42,7 +42,7 @@ with with_browserstate(
 # Example with Google Cloud Storage provider (requires google-cloud-storage)
 with with_browserstate(
     user_id="gcs-user",
-    state_id="gcs-session",
+    session_id="gcs-session",
     provider="gcs",
     # GCS configuration is handled through application default credentials
     # Make sure GCP credentials are configured in your environment
