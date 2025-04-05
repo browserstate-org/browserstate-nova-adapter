@@ -1,0 +1,1 @@
+# browserstate-nova-adapter
