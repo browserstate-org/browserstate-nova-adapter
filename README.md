@@ -20,7 +20,7 @@ from nova_act import NovaAct
 
 # Create and use a browser state session
 session = BrowserStateSession(
-    user_id="demo-user",
+    user_id="web-automation-1",
     session_id="nova-session",
     provider="redis",
     redis_options={"host": "localhost", "port": 6379}
@@ -41,7 +41,7 @@ from nova_act import NovaAct
 
 # Create a session
 session = BrowserStateSession(
-    user_id="demo",
+    user_id="web-automation-2",
     session_id="session1",
     provider="local"
 )
@@ -69,14 +69,14 @@ from nova_act import NovaAct
 
 # Create sessions for different services
 amazon_session = BrowserStateSession(
-    user_id="shopper",
+    user_id="amazon-shopper-1",
     session_id="amazon-session",
     provider="local",
     storage_path="./browser_sessions/amazon"
 )
 
 gmail_session = BrowserStateSession(
-    user_id="email-user",
+    user_id="gmail-user-1",
     session_id="gmail-session",
     provider="local",
     storage_path="./browser_sessions/gmail"
@@ -116,7 +116,7 @@ from nova_act import NovaAct
 
 # Create a persistent session
 auth_session = BrowserStateSession(
-    user_id="auth-user",
+    user_id="auth-user-1",
     session_id="auth-session",
     provider="local",
     storage_path="./browser_sessions/auth",
@@ -206,7 +206,7 @@ from getpass import getpass
 
 # Create a persistent session for Amazon
 amazon_session = BrowserStateSession(
-    user_id="amazon-shopper",
+    user_id="amazon-shopper-1",
     session_id="amazon-shopping-session",
     provider="local",
     storage_path="./browser_sessions"
