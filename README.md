@@ -90,7 +90,6 @@ This example demonstrates how to maintain login state and shopping carts across 
 ```python
 from browserstate_nova_adapter import with_browserstate, create_session_config
 from nova_act import NovaAct
-import os
 
 # Create a reusable session configuration
 amazon_config = create_session_config(
