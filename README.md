@@ -6,28 +6,28 @@ This package makes it easy to use [BrowserState](https://github.com/browserstate
 
 ---
 
-
 ## 📦 Install (Coming Soon)
 
 > This package is under active development and will be published to PyPI soon. In the meantime, clone or install directly from source if you're contributing or testing.
 
 ---
 
----
-
 ## 🚀 Quickstart Example (Nova + BrowserState)
 
 ```python
-from browserstate_nova_adapter import with_browserstate
+from browserstate_nova_adapter import BrowserStateSession
 from nova_act import NovaAct
 
-with with_browserstate(
-    user_id="demo-user",
+# Create and use a browser state session
+session = BrowserStateSession(
+    user_id="web-automation-1",
     session_id="nova-session",
-    provider="redis",  # or 'local', 's3', 'gcs'
+    provider="redis",
     redis_options={"host": "localhost", "port": 6379}
-) as user_data_dir:
-    with NovaAct(starting_page="https://example.com", user_data_dir=user_data_dir) as nova:
+)
+
+with session as user_data_dir:
+    with NovaAct(starting_page="https://example.com", user_data_dir=user_data_dir, clone_user_data_dir=False) as nova:
         nova.act("search for something")
 ```
 
@@ -36,20 +36,131 @@ with with_browserstate(
 ## 🔧 Manual Usage
 
 ```python
-from browserstate_nova_adapter import mount_browserstate, unmount_browserstate
+from browserstate_nova_adapter import BrowserStateSession
 from nova_act import NovaAct
 
-user_data_dir = mount_browserstate(
-    user_id="demo",
+# Create a session
+session = BrowserStateSession(
+    user_id="web-automation-2",
     session_id="session1",
     provider="local"
 )
 
+# Mount the session
+user_data_dir = session.mount()
+
 try:
-    with NovaAct(starting_page="https://example.com", user_data_dir=user_data_dir) as nova:
+    with NovaAct(starting_page="https://example.com", user_data_dir=user_data_dir, clone_user_data_dir=False) as nova:
         nova.act("search for something")
 finally:
-    unmount_browserstate()
+    # Always unmount when done
+    session.unmount()
+```
+
+---
+
+## 🌐 Multiple Browser States Example
+
+You can manage multiple browser states for different services, each with its own session:
+
+```python
+from browserstate_nova_adapter import BrowserStateSession
+from nova_act import NovaAct
+
+# Create sessions for different services
+amazon_session = BrowserStateSession(
+    user_id="amazon-shopper-1",
+    session_id="amazon-session",
+    provider="local",
+    storage_path="./browser_sessions/amazon"
+)
+
+gmail_session = BrowserStateSession(
+    user_id="gmail-user-1",
+    session_id="gmail-session",
+    provider="local",
+    storage_path="./browser_sessions/gmail"
+)
+
+# Use Amazon session
+def browse_amazon():
+    with amazon_session as user_data_dir:
+        with NovaAct(starting_page="https://amazon.com", user_data_dir=user_data_dir, clone_user_data_dir=False) as nova:
+            nova.act("search for products")
+            # Amazon session state is preserved
+
+# Use Gmail session
+def check_gmail():
+    with gmail_session as user_data_dir:
+        with NovaAct(starting_page="https://gmail.com", user_data_dir=user_data_dir, clone_user_data_dir=False) as nova:
+            nova.act("check inbox")
+            # Gmail session state is preserved
+
+# Each session maintains its own cookies and state
+browse_amazon()  # Uses Amazon session
+check_gmail()    # Uses Gmail session
+```
+
+---
+
+## 🔐 Authentication and Session Management
+
+### Setting Up Authentication
+
+You can set up authentication for your websites by creating a persistent session:
+
+```python
+import os
+from browserstate_nova_adapter import BrowserStateSession
+from nova_act import NovaAct
+
+# Create a persistent session
+auth_session = BrowserStateSession(
+    user_id="auth-user-1",
+    session_id="auth-session",
+    provider="local",
+    storage_path="./browser_sessions/auth",
+    temp_dir="./temp/auth"
+)
+
+# Set up authentication
+with auth_session as user_data_dir:
+    with NovaAct(
+        starting_page="https://example.com/login",
+        user_data_dir=user_data_dir,
+        clone_user_data_dir=False
+    ) as nova:
+        input("Log into your websites, then press enter...")
+
+print(f"Authentication data saved to {auth_session.temp_dir}")
+```
+
+### Handling Sensitive Information
+
+For secure handling of passwords and sensitive data:
+
+```python
+from getpass import getpass
+from browserstate_nova_adapter import BrowserStateSession
+from nova_act import NovaAct
+
+def secure_login():
+    with auth_session as user_data_dir:
+        with NovaAct(
+            starting_page="https://example.com/login",
+            user_data_dir=user_data_dir,
+            clone_user_data_dir=False
+        ) as nova:
+            # Enter username securely using Playwright
+            nova.act("click on the email field")
+            nova.page.keyboard.type(getpass("Enter email: "))
+            
+            # Enter password securely using Playwright
+            nova.act("click on the password field")
+            nova.page.keyboard.type(getpass())
+            
+            # Complete login
+            nova.act("click sign in button")
 ```
 
 ---
@@ -88,12 +199,14 @@ It wraps `BrowserState`'s mounting logic, handles cleanup, and supports Redis/S3
 This example demonstrates how to maintain login state and shopping carts across multiple runs when automating Amazon shopping tasks.
 
 ```python
-from browserstate_nova_adapter import with_browserstate, create_session_config
+from browserstate_nova_adapter import BrowserStateSession
 from nova_act import NovaAct
+import os
+from getpass import getpass
 
-# Create a reusable session configuration
-amazon_config = create_session_config(
-    user_id="amazon-shopper",
+# Create a persistent session for Amazon
+amazon_session = BrowserStateSession(
+    user_id="amazon-shopper-1",
     session_id="amazon-shopping-session",
     provider="local",
     storage_path="./browser_sessions"
@@ -101,13 +214,15 @@ amazon_config = create_session_config(
 
 # Step 1: Login to Amazon and add item to cart
 def amazon_login_and_add_to_cart():
-    with with_browserstate(**amazon_config) as user_data_dir:
-        with NovaAct(starting_page="https://www.amazon.com", user_data_dir=user_data_dir) as nova:
-            # Login to Amazon
+    with amazon_session as user_data_dir:
+        with NovaAct(starting_page="https://www.amazon.com", user_data_dir=user_data_dir, clone_user_data_dir=False) as nova:
+            # Login to Amazon securely
             nova.act("click on sign in")
-            nova.act("enter email address")
+            nova.act("click on email field")
+            nova.page.keyboard.type(getpass("Enter Amazon email: "))  # Secure email entry
             nova.act("click continue")
-            nova.act("enter password")
+            nova.act("enter password field")
+            nova.page.keyboard.type(getpass())  # Secure password entry
             nova.act("click sign in")
             
             # Search for product
@@ -117,12 +232,11 @@ def amazon_login_and_add_to_cart():
             # Add to cart
             nova.act("add to cart")
             print("✅ Successfully logged in and added item to cart")
-            # Session will be automatically saved when exiting the context manager
 
 # Step 2: Later, complete the purchase using the same session (persisted cart and login)
 def amazon_complete_purchase():
-    with with_browserstate(**amazon_config) as user_data_dir:
-        with NovaAct(starting_page="https://www.amazon.com/cart", user_data_dir=user_data_dir) as nova:
+    with amazon_session as user_data_dir:
+        with NovaAct(starting_page="https://www.amazon.com/cart", user_data_dir=user_data_dir, clone_user_data_dir=False) as nova:
             # User is still logged in and cart is preserved from previous session
             nova.act("verify the item is in cart")
             nova.act("proceed to checkout")
