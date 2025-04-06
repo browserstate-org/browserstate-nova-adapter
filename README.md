@@ -88,18 +88,21 @@ It wraps `BrowserState`'s mounting logic, handles cleanup, and supports Redis/S3
 This example demonstrates how to maintain login state and shopping carts across multiple runs when automating Amazon shopping tasks.
 
 ```python
-from browserstate_nova_adapter import with_browserstate
+from browserstate_nova_adapter import with_browserstate, create_session_config
 from nova_act import NovaAct
 import os
 
+# Create a reusable session configuration
+amazon_config = create_session_config(
+    user_id="amazon-shopper",
+    session_id="amazon-shopping-session",
+    provider="local",
+    storage_path="./browser_sessions"
+)
+
 # Step 1: Login to Amazon and add item to cart
 def amazon_login_and_add_to_cart():
-    with with_browserstate(
-        user_id="amazon-shopper",
-        session_id="amazon-shopping-session",
-        provider="local",
-        storage_path="./browser_sessions"
-    ) as user_data_dir:
+    with with_browserstate(**amazon_config) as user_data_dir:
         with NovaAct(starting_page="https://www.amazon.com", user_data_dir=user_data_dir) as nova:
             # Login to Amazon
             nova.act("click on sign in")
@@ -119,12 +122,7 @@ def amazon_login_and_add_to_cart():
 
 # Step 2: Later, complete the purchase using the same session (persisted cart and login)
 def amazon_complete_purchase():
-    with with_browserstate(
-        user_id="amazon-shopper",
-        session_id="amazon-shopping-session",  # Same session ID to reuse state
-        provider="local",
-        storage_path="./browser_sessions"
-    ) as user_data_dir:
+    with with_browserstate(**amazon_config) as user_data_dir:
         with NovaAct(starting_page="https://www.amazon.com/cart", user_data_dir=user_data_dir) as nova:
             # User is still logged in and cart is preserved from previous session
             nova.act("verify the item is in cart")
