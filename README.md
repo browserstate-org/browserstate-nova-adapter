@@ -6,12 +6,9 @@ This package makes it easy to use [BrowserState](https://github.com/browserstate
 
 ---
 
-
 ## 📦 Install (Coming Soon)
 
 > This package is under active development and will be published to PyPI soon. In the meantime, clone or install directly from source if you're contributing or testing.
-
----
 
 ---
 
@@ -27,7 +24,7 @@ with with_browserstate(
     provider="redis",  # or 'local', 's3', 'gcs'
     redis_options={"host": "localhost", "port": 6379}
 ) as user_data_dir:
-    with NovaAct(starting_page="https://example.com", user_data_dir=user_data_dir) as nova:
+    with NovaAct(starting_page="https://example.com", user_data_dir=user_data_dir, clone_user_data_dir=False) as nova:
         nova.act("search for something")
 ```
 
@@ -46,10 +43,90 @@ user_data_dir = mount_browserstate(
 )
 
 try:
-    with NovaAct(starting_page="https://example.com", user_data_dir=user_data_dir) as nova:
+    with NovaAct(starting_page="https://example.com", user_data_dir=user_data_dir, clone_user_data_dir=False) as nova:
         nova.act("search for something")
 finally:
     unmount_browserstate()
+```
+
+---
+
+## 🔐 Authentication and Session Management
+
+### Setting Up Authentication
+
+You can set up authentication for your websites by creating a persistent user data directory:
+
+```python
+import os
+from browserstate_nova_adapter import with_browserstate
+from nova_act import NovaAct
+
+# Create a persistent session configuration
+auth_config = create_session_config(
+    user_id="auth-user",
+    session_id="auth-session",
+    provider="local",
+    storage_path="./browser_sessions"
+)
+
+# Set up authentication
+with with_browserstate(**auth_config) as user_data_dir:
+    with NovaAct(
+        starting_page="https://example.com/login",
+        user_data_dir=user_data_dir,
+        clone_user_data_dir=False  # Important: Don't clone during setup
+    ) as nova:
+        input("Log into your websites, then press enter...")
+
+print(f"Authentication data saved to {user_data_dir}")
+```
+
+### Handling Sensitive Information
+
+For secure handling of passwords and sensitive data:
+
+```python
+from getpass import getpass
+from browserstate_nova_adapter import with_browserstate
+from nova_act import NovaAct
+
+def secure_login():
+    with with_browserstate(**auth_config) as user_data_dir:
+        with NovaAct(
+            starting_page="https://example.com/login",
+            user_data_dir=user_data_dir,
+            clone_user_data_dir=False
+        ) as nova:
+            # Enter username securely using Playwright
+            nova.act("click on the email field")
+            nova.page.keyboard.type(getpass("Enter email: "))
+            
+            # Enter password securely using Playwright
+            nova.act("click on the password field")
+            nova.page.keyboard.type(getpass())
+            
+            # Complete login
+            nova.act("click sign in button")
+```
+
+### Handling Captchas
+
+```python
+from browserstate_nova_adapter import with_browserstate
+from nova_act import NovaAct, BOOL_SCHEMA
+
+def handle_captcha():
+    with with_browserstate(**auth_config) as user_data_dir:
+        with NovaAct(
+            starting_page="https://example.com",
+            user_data_dir=user_data_dir,
+            clone_user_data_dir=False
+        ) as nova:
+            # Check for captcha
+            result = nova.act("Is there a captcha on the screen?", schema=BOOL_SCHEMA)
+            if result.matches_schema and result.parsed_response:
+                input("Please solve the captcha and hit return when done")
 ```
 
 ---
@@ -91,6 +168,7 @@ This example demonstrates how to maintain login state and shopping carts across 
 from browserstate_nova_adapter import with_browserstate, create_session_config
 from nova_act import NovaAct
 import os
+from getpass import getpass
 
 # Create a reusable session configuration
 amazon_config = create_session_config(
@@ -103,12 +181,14 @@ amazon_config = create_session_config(
 # Step 1: Login to Amazon and add item to cart
 def amazon_login_and_add_to_cart():
     with with_browserstate(**amazon_config) as user_data_dir:
-        with NovaAct(starting_page="https://www.amazon.com", user_data_dir=user_data_dir) as nova:
-            # Login to Amazon
+        with NovaAct(starting_page="https://www.amazon.com", user_data_dir=user_data_dir, clone_user_data_dir=False) as nova:
+            # Login to Amazon securely
             nova.act("click on sign in")
-            nova.act("enter email address")
+            nova.act("click on email field")
+            nova.page.keyboard.type(getpass("Enter Amazon email: "))  # Secure email entry
             nova.act("click continue")
-            nova.act("enter password")
+            nova.act("enter password field")
+            nova.page.keyboard.type(getpass())  # Secure password entry
             nova.act("click sign in")
             
             # Search for product
@@ -123,7 +203,7 @@ def amazon_login_and_add_to_cart():
 # Step 2: Later, complete the purchase using the same session (persisted cart and login)
 def amazon_complete_purchase():
     with with_browserstate(**amazon_config) as user_data_dir:
-        with NovaAct(starting_page="https://www.amazon.com/cart", user_data_dir=user_data_dir) as nova:
+        with NovaAct(starting_page="https://www.amazon.com/cart", user_data_dir=user_data_dir, clone_user_data_dir=False) as nova:
             # User is still logged in and cart is preserved from previous session
             nova.act("verify the item is in cart")
             nova.act("proceed to checkout")
